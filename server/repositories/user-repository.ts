@@ -4,33 +4,97 @@ import { compare, hash } from '../util/hashing.js'
 import { constructPath } from '../util/functions.js'
 import { DB, PRIVATE_KEY, USERS } from '../env.js'
 import { User } from '../models/user.js'
+import { ActionResult, ServerError } from '../models/action-result.js'
 
 const userPath = constructPath(DB, USERS)
 
-console.log(userPath)
 export class UserRepo {
-    static async register(name: string, user: string, pass: string) {
-        if (UserRepo.getUser(user)) return false
-
+    static async register(
+        name: string,
+        username: string,
+        pass: string
+    ): Promise<ActionResult<User>> {
+        if (UserRepo.findUser(username))
+            return new ActionResult<User>(void 0, {
+                status: 409,
+                message: 'This username is already taken.  Please try another.',
+            } as ServerError)
         const hashedPass = await hash(pass)
-        let result = true
 
-        await fs.appendFile(
-            userPath,
-            `${name},${user},${hashedPass}\n`,
-            (err) => (result = false)
-        )
+        const user = UserRepo.generateUser(name, username, hashedPass)
 
-        return result
+        UserRepo.writeUser(user)
+
+        return new ActionResult<User>(user)
     }
 
-    static async login(username: string, pass: string) {
-        const user = UserRepo.getUser(username)
-        if (!user) throw new Error('User not in system.')
+    static async createSecurityQuestion(
+        username: string,
+        question: string,
+        answer: string
+    ): Promise<ActionResult<string>> {
+        if (question.length < 5 || answer.length < 3)
+            return new ActionResult<string>(void 0, {
+                status: 400,
+                message:
+                    'Security question must be at least five characters long and security answer must be at lest three characters long',
+            })
+
+        const user = UserRepo.findUser(username)
+        if (!user)
+            return new ActionResult<string>(void 0, {
+                status: 404,
+                message: 'User could not be found in system.',
+            })
+
+        user.securityQuestion = {
+            question,
+            answer,
+        }
+
+        UserRepo.writeUser(user)
+
+        return new ActionResult<string>('Security question and answer saved!')
+    }
+
+    static generateUser(name: string, username: string, hash: string) {
+        return {
+            name,
+            username,
+            hash,
+            permissions: [],
+            failedLogins: 0,
+        } as User
+    }
+
+    static async login(
+        username: string,
+        pass: string
+    ): Promise<ActionResult<string>> {
+        const user = UserRepo.findUser(username)
+        if (!user)
+            return new ActionResult<string>(void 0, {
+                status: 404,
+                message: `User with username: ${username} not in system.`,
+            } as ServerError)
+
+        if (user.failedLogins >= 3)
+            return new ActionResult<string>(void 0, {
+                status: 403,
+                message:
+                    'You have exceeded you three login attempt threshhold.  Please contact your system admin.',
+            } as ServerError)
 
         const auth = await compare(pass, user.hash)
 
-        if (!auth) throw new Error('Username or password is incorrect.')
+        if (!auth) {
+            user.failedLogins++
+            UserRepo.writeUser(user)
+            return new ActionResult<string>(void 0, {
+                status: 401,
+                message: 'Username or password is incorrect.',
+            } as ServerError)
+        }
 
         const token = jwt.sign(
             {
@@ -39,43 +103,24 @@ export class UserRepo {
             },
             PRIVATE_KEY
         )
-
-        return token
+        return new ActionResult<string>(token)
     }
 
-    static getUser(user: string) {
-        const users = UserRepo.parseUsers()
+    static getUserFileName = (username: string) => `${userPath}/${username}.txt`
 
-        return users.find((u) => u.username == user)
+    static findUser(username: string) {
+        const path = UserRepo.getUserFileName(username)
+        if (!fs.existsSync(path)) return null
+        const data = fs.readFileSync(path)
+
+        if (data == void 0) return null
+
+        const user = JSON.parse(data.toString()) as User
+        return user
     }
 
-    static parseUsers() {
-        const users: User[] = []
-        const data = fs.readFileSync(userPath)
-
-        if (data == void 0) return users
-        const lines = data.toString().split('\n')
-
-        lines.forEach((l, i) => {
-            if (i == 0) return
-            const pieces = l.split(',')
-            if (
-                pieces[0] == void 0 ||
-                pieces[1] == void 0 ||
-                pieces[2] == void 0
-            )
-                return
-            users.push({
-                name: pieces[0],
-                username: pieces[1],
-                hash: pieces[2],
-            } as User)
-        })
-        return users
-    }
-
-    static createCsv() {
-        if (fs.existsSync(userPath)) return
-        fs.writeFileSync(userPath, 'name,user,pass\n')
+    static writeUser(user: User) {
+        const path = UserRepo.getUserFileName(user.username)
+        fs.writeFileSync(path, JSON.stringify(user))
     }
 }
