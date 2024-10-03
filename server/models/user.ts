@@ -1,3 +1,6 @@
+/**
+ * User representation
+ */
 export type User = {
     name: string
     username: string
@@ -7,6 +10,9 @@ export type User = {
     securityQuestion?: SecurityQuestion
 }
 
+/**
+ * Security Question
+ */
 export type SecurityQuestion = {
     question: string
     answer: string

@@ -9,6 +9,14 @@ import { ActionResult, ServerError } from '../models/action-result.js'
 const userPath = constructPath(DB, USERS)
 
 export class UserRepo {
+    /**
+     * @param name
+     * @param username
+     * @param pass
+     * @returns ActionResult<User>
+     * Registers the user in the system.  If the user exists already, an error is returned within the ActionResult.
+     * Otherwise the newly created user information is passed back to the caller.
+     */
     static async register(
         name: string,
         username: string,
@@ -28,6 +36,14 @@ export class UserRepo {
         return new ActionResult<User>(user)
     }
 
+    /**
+     * @param username
+     * @param question
+     * @param answer
+     * @returns ActionResult<string>
+     * Creates the security question for the user.  Generally this will be called after user
+     * registration of when the user wishes to change their security question.
+     */
     static async createSecurityQuestion(
         username: string,
         question: string,
@@ -57,6 +73,14 @@ export class UserRepo {
         return new ActionResult<string>('Security question and answer saved!')
     }
 
+    /**
+     *
+     * @param name
+     * @param username
+     * @param hash
+     * @returns User
+     * A method for easy creation of the user object.
+     */
     static generateUser(name: string, username: string, hash: string) {
         return {
             name,
@@ -67,6 +91,15 @@ export class UserRepo {
         } as User
     }
 
+    /**
+     *
+     * @param username
+     * @param pass
+     * @returns ActionResult<string>
+     * Authorizes the user if they have the proper credentials for a user within the
+     * system.  An error is passed in the ActionResult if the provided credentials are
+     * invalid.  Otherwise a JSON Web Token is returned.
+     */
     static async login(
         username: string,
         pass: string
@@ -106,8 +139,19 @@ export class UserRepo {
         return new ActionResult<string>(token)
     }
 
+    /**
+     * @param username
+     * @returns string
+     * A simple method for creating the path to the desired user record.
+     */
     static getUserFileName = (username: string) => `${userPath}/${username}.txt`
 
+    /**
+     * @param username
+     * @returns User | null
+     * Finds the user within the 'database' if the user exists.  The user object is returned
+     * if it is found, otherwise null is returned.
+     */
     static findUser(username: string) {
         const path = UserRepo.getUserFileName(username)
         if (!fs.existsSync(path)) return null
@@ -119,6 +163,11 @@ export class UserRepo {
         return user
     }
 
+    /**
+     * @param user
+     * Overwrites the user to their respective record.  Generally this is done when
+     * user data is altered and needs to be updated in the record.
+     */
     static writeUser(user: User) {
         const path = UserRepo.getUserFileName(user.username)
         fs.writeFileSync(path, JSON.stringify(user))
