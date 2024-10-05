@@ -1,7 +1,6 @@
 import express from 'express'
 import { UserRepo } from './repositories/user-repository.js'
 import { createDirectory, isValidPassword } from './util/functions.js'
-import { User } from './models/user.js'
 import { checkPerm } from './middleware/auth.js'
 
 createDirectory()
