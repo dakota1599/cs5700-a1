@@ -45,7 +45,6 @@ export class Http {
     }
 
     /**
-     *
      * @returns Promise<Response>
      * Sends a request to the server to get all users in the system.
      */
@@ -55,6 +54,32 @@ export class Http {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${token}`,
+            },
+        })
+    }
+
+    /**
+     * @param username
+     * @returns Promise<string>
+     * Gets the security question based on the inputted username
+     */
+    static async getSecurityQuestion(username: string) {
+        return await fetch(Http.endpoint(`security?username=${username}`), {
+            method: 'GET',
+        })
+    }
+
+    static async resetPassword(
+        username: string,
+        answer: string,
+        password: string
+    ) {
+        return await fetch(Http.endpoint(`reset`), {
+            method: 'POST',
+            body: JSON.stringify({ username, answer, password }),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
             },
         })
     }

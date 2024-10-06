@@ -1,5 +1,7 @@
 import fs from 'fs'
-import { DB, USERS } from '../env.js'
+import jwt, { JwtPayload } from 'jsonwebtoken'
+import { DB, PRIVATE_KEY, USERS } from '../env.js'
+import { UserRepo } from '../repositories/user-repository.js'
 
 /**
  * Creates the parent database directory.
@@ -51,4 +53,18 @@ export function isValidPassword(pass: string) {
     const regex =
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,}$/
     return regex.test(pass)
+}
+
+export function parseToken(auth: string) {
+    if (auth == '' || auth == void 0) return null
+
+    const token = auth.split(' ')
+    if (token.length < 2) return null
+
+    try {
+        var decoded = jwt.verify(token[1], PRIVATE_KEY) as JwtPayload
+        return decoded.data
+    } catch (err) {
+        return null
+    }
 }

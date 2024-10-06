@@ -23,3 +23,17 @@ export type SignInDTO = {
     username: string
     password: string
 }
+
+/**
+ * The props used for both the Sign In and the Sign Up components.
+ */
+export type SignProp = {
+    toggleNewUser: (val: number) => void
+    onEnter: (info: SignInDTO | SignUpDTO) => void
+}
+
+export type ResetPasswordDTO = {
+    answer: string
+    password: string
+    password2: string
+}

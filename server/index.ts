@@ -1,7 +1,11 @@
 import express from 'express'
 import cors from 'cors'
 import { UserRepo } from './repositories/user-repository.js'
-import { createDirectory, isValidPassword } from './util/functions.js'
+import {
+    createDirectory,
+    isValidPassword,
+    parseToken,
+} from './util/functions.js'
 import { checkPerm } from './middleware/auth.js'
 
 createDirectory()
@@ -63,16 +67,6 @@ app.post('/register', (req, res) => {
         .catch((err) => res.status(500).send({ message: err }))
 })
 
-app.get('/authorize', checkPerm(), (req, res) => {
-    res.sendStatus(201)
-})
-
-app.route('/users').get(checkPerm(), (req, res) => {
-    const users = UserRepo.getAllUsers()
-
-    res.status(200).send(users)
-})
-
 app.post('/login', (req, res) => {
     const data = req.body
     let error = ''
@@ -90,19 +84,70 @@ app.post('/login', (req, res) => {
                 res.status(result.error.status).send({
                     message: result.error.message,
                 })
-            else res.status(500).send({ message: 'Unknown user error.' })
+            else res.status(500).send({ message: 'Unknown server error.' })
         })
     } catch (err: any) {
         res.status(404).send(err.message)
     }
 })
 
-app.get('/health', (req, res) => {
-    return res.status(200).send('API is active.')
+app.post('/reset', (req, res) => {
+    const data = req.body
+    let error = ''
+
+    if (data == null || data == void 0) {
+        res.status(400).send(
+            'Must submit your security answer and new password.'
+        )
+        return
+    }
+
+    if (data.username == null) error += 'Must send a username.\n'
+    if (data.answer == null)
+        error += 'Must send an answer to the security question.\n'
+    if (data.password == null) error += 'Must send a password.\n'
+
+    if (error.length > 0) return res.status(400).send(error)
+
+    UserRepo.resetPassword(data.username, data.answer, data.password).then(
+        (result) => {
+            if (result.data) res.status(200).send({ message: result.data })
+            else if (result.error)
+                res.status(result.error.status).send({
+                    message: result.error.message,
+                })
+            else res.status(500).send({ message: 'Unknown server error.' })
+        }
+    )
 })
 
-app.get('/test', checkPerm(), (req, res) => {
-    return res.status(200).send('Pass')
+app.get('/authorize', checkPerm(), (req, res) => {
+    res.sendStatus(201)
+})
+
+app.route('/users').get(checkPerm(), (req, res) => {
+    const users = UserRepo.getAllUsers()
+
+    res.status(200).send(users)
+})
+
+app.get('/security', (req, res) => {
+    const data = req.query.username as string | undefined
+    if (data == null)
+        return res.status(400).send({ message: 'Must submit a username' })
+
+    UserRepo.getSecurityQuestion(data).then((result) => {
+        if (result.data) res.status(200).send({ question: result.data })
+        else if (result.error)
+            res.status(result.error.status).send({
+                message: result.error.message,
+            })
+        else res.status(500).send({ message: 'Unknown server error.' })
+    })
+})
+
+app.get('/health', (req, res) => {
+    return res.status(200).send('API is active.')
 })
 
 // Set the port and listen for incoming requests

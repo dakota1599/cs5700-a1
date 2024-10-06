@@ -83,6 +83,48 @@ export class UserRepo {
     }
 
     /**
+     * @param username
+     * @returns ActionResult<string>
+     * Gets the security question related to the user.
+     */
+    static async getSecurityQuestion(username: string) {
+        const user = UserRepo.findUser(username)
+        if (!user)
+            return new ActionResult<string>(void 0, {
+                status: 404,
+                message: 'User could not be found in system.',
+            })
+
+        return new ActionResult<string>(user.securityQuestion?.question)
+    }
+
+    static async resetPassword(
+        username: string,
+        answer: string,
+        password: string
+    ) {
+        const user = UserRepo.findUser(username)
+        if (!user)
+            return new ActionResult<string>(void 0, {
+                status: 404,
+                message: 'User could not be found in system.',
+            })
+
+        if (!(await compare(answer, user.securityQuestion?.answer ?? '')))
+            return new ActionResult<string>(void 0, {
+                status: 401,
+                message: 'Answer to security question is not correct.',
+            })
+
+        const newHash = await hash(password)
+
+        user.hash = newHash
+
+        this.writeUser(user)
+        return new ActionResult<string>('Password successfully updated')
+    }
+
+    /**
      *
      * @param name
      * @param username
