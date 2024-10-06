@@ -24,8 +24,8 @@ export const ManageSecurity = () => {
         let errors = ''
         if (question == void 0 || question.length < 5)
             errors += 'Secuirty Question must be at least 5 characters long.\n'
-        if (answer.length < 3)
-            errors += 'Security Answer must be at least 3 characters long.\n'
+        if (answer.length < 15)
+            errors += 'Security Answer must be at least 15 characters long.\n'
 
         if (errors.length > 0) return alert(errors)
 

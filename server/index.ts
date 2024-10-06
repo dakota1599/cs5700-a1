@@ -37,8 +37,8 @@ app.post('/register', (req, res) => {
     if (data.securityQuestion?.length < 5)
         error += 'Security Question must be at least 5 characters long.\n'
     if (data.securityAnswer == null) error += 'A security answer is required.\n'
-    if (data.securityAnswer?.length < 3)
-        error += 'Security Answer must be at least 3 characters long.\n'
+    if (data.securityAnswer?.length < 15)
+        error += 'Security Answer must be at least 15 characters long.\n'
 
     if (!isValidPassword(data.password))
         error +=
@@ -115,6 +115,9 @@ app.post('/reset', (req, res) => {
     if (data.answer == null)
         error += 'Must send an answer to the security question.\n'
     if (data.password == null) error += 'Must send a password.\n'
+    if (!isValidPassword(data.password))
+        error +=
+            'Password must be at least 8 characters long, contain special characters, at least one upper and lowercase letter, and a number.'
 
     if (error.length > 0) return res.status(400).send(error)
 
@@ -188,7 +191,11 @@ app.route('/security')
         let errors = ''
         if (data.question == null)
             errors += 'A security question is required.\n'
+        if (data.securityQuestion?.length < 5)
+            errors += 'Security Question must be at least 5 characters long.\n'
         if (data.answer == null) errors += 'A security answer is required.\n'
+        if (data.securityAnswer?.length < 15)
+            errors += 'Security Answer must be at least 15 characters long.\n'
 
         if (errors.length > 0) return res.status(400).send({ message: errors })
 

@@ -154,7 +154,7 @@ export const SignUp = ({ toggleNewUser, onEnter }: SignProp) => {
                     placeholder="Security Answer"
                     {...register('securityAnswer', {
                         required: true,
-                        minLength: 3,
+                        minLength: 15,
                     })}
                 />
                 <button type="submit" className="btn w-full">

@@ -18,7 +18,7 @@ export function parseErrors(errors: any) {
                 'Please provide a secuirty question that is at least 5 characters long.'
         if (key == 'securityAnswer')
             res +=
-                'Please provide a security answer that is at least 3 characters long.'
+                'Please provide a security answer that is at least 15 characters long.'
 
         res += '\n'
     }

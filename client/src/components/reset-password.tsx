@@ -84,7 +84,7 @@ export const ResetPassword = ({ toggleNewUser }: Omit<SignProp, 'onEnter'>) => {
                             className="text-box"
                             {...register('answer', {
                                 required: true,
-                                minLength: 3,
+                                minLength: 15,
                             })}
                         />
                         <input
