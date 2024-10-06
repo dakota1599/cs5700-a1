@@ -4,6 +4,10 @@ import { useForm } from 'react-hook-form'
 import { parseErrors } from '../functions'
 import { Http } from '../http/http'
 
+/**
+ * @returns ReactNode
+ * The screen where a user can reset their password using their security question.
+ */
 export const ResetPassword = ({ toggleNewUser }: Omit<SignProp, 'onEnter'>) => {
     const [username, setUsername] = useState('')
     const [secQ, setSecQ] = useState('')

@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { SignInDTO, SignUpDTO } from '../types'
-import { parseErrors } from '../functions'
 import { Http } from '../http/http'
 import { saveSession } from '../http/session'
 import { SignIn, SignUp } from '../components/sign'

@@ -1,6 +1,11 @@
-import { ManageUsers } from '../components/manager-users'
+import { ManageSecurity } from '../components/manage-security'
+import { ManageUsers } from '../components/manage-users'
 import { clearSession } from '../http/session'
 
+/**
+ * @returns ReactNode
+ * The home screen where the user lands once they are authenticated
+ */
 export const HomeScreen = () => {
     const logout = () => {
         clearSession()
@@ -29,6 +34,10 @@ export const HomeScreen = () => {
             <br />
 
             <ManageUsers />
+
+            <br />
+
+            <ManageSecurity />
         </div>
     )
 }

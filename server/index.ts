@@ -16,6 +16,9 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+/**
+ * Endpoint for registering a user into the system.
+ */
 app.post('/register', (req, res) => {
     const data = req.body
     let error = ''
@@ -67,6 +70,9 @@ app.post('/register', (req, res) => {
         .catch((err) => res.status(500).send({ message: err }))
 })
 
+/**
+ * Endpoint for logging a user into the system.
+ */
 app.post('/login', (req, res) => {
     const data = req.body
     let error = ''
@@ -91,6 +97,9 @@ app.post('/login', (req, res) => {
     }
 })
 
+/**
+ * Endpoint for resetting the users password.
+ */
 app.post('/reset', (req, res) => {
     const data = req.body
     let error = ''
@@ -121,6 +130,9 @@ app.post('/reset', (req, res) => {
     )
 })
 
+/**
+ * Endpoint for simply checking if the user is currently authorized with the system.
+ */
 app.get('/authorize', checkPerm(), (req, res) => {
     res.sendStatus(201)
 })
@@ -131,21 +143,78 @@ app.route('/users').get(checkPerm(), (req, res) => {
     res.status(200).send(users)
 })
 
-app.get('/security', (req, res) => {
-    const data = req.query.username as string | undefined
-    if (data == null)
-        return res.status(400).send({ message: 'Must submit a username' })
+app.route('/security')
+    /**
+     * Endpoint for getting the user's security question either by submitting the user's username or using the username stored in the
+     * active jwt.
+     */
+    .get((req, res) => {
+        const token = req.query.token as boolean | undefined
+        const username = req.query.username as string | undefined
+        let data
+        if (token != null) {
+            const userData = parseToken(req.headers.authorization ?? '')
+            if (userData == null)
+                return res
+                    .status(401)
+                    .send({ message: 'Invalid token provided.' })
+            data = userData.user
+        } else {
+            if (username == null)
+                return res
+                    .status(400)
+                    .send({ message: 'Must submit a username' })
+            data = username
+        }
 
-    UserRepo.getSecurityQuestion(data).then((result) => {
-        if (result.data) res.status(200).send({ question: result.data })
-        else if (result.error)
-            res.status(result.error.status).send({
-                message: result.error.message,
-            })
-        else res.status(500).send({ message: 'Unknown server error.' })
+        UserRepo.getSecurityQuestion(data).then((result) => {
+            if (result.data) res.status(200).send({ question: result.data })
+            else if (result.error)
+                res.status(result.error.status).send({
+                    message: result.error.message,
+                })
+            else res.status(500).send({ message: 'Unknown server error.' })
+        })
     })
-})
+    /**
+     * Endpoint for setting the user's security question.  Must be authorized to change security question.
+     */
+    .post(checkPerm(), (req, res) => {
+        const data = req.body
+        if (data == null || data == void 0) {
+            res.status(400).send('Must submit a security question and answer')
+            return
+        }
+        let errors = ''
+        if (data.question == null)
+            errors += 'A security question is required.\n'
+        if (data.answer == null) errors += 'A security answer is required.\n'
 
+        if (errors.length > 0) return res.status(400).send({ message: errors })
+
+        const userData = parseToken(req.headers.authorization ?? '')
+        if (userData == null)
+            return res
+                .status(401)
+                .send({ message: 'An error occurred during authentication.' })
+
+        UserRepo.createSecurityQuestion(
+            userData.user,
+            data.question,
+            data.answer
+        ).then((result) => {
+            if (result.data) res.status(200).send({ question: result.data })
+            else if (result.error)
+                res.status(result.error.status).send({
+                    message: result.error.message,
+                })
+            else res.status(500).send({ message: 'Unknown server error.' })
+        })
+    })
+
+/**
+ * Endpoint for checking the health of the API.
+ */
 app.get('/health', (req, res) => {
     return res.status(200).send('API is active.')
 })

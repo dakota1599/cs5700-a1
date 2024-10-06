@@ -61,7 +61,7 @@ export class Http {
     /**
      * @param username
      * @returns Promise<string>
-     * Gets the security question based on the inputted username
+     * Gets the security question based on the inputted username.
      */
     static async getSecurityQuestion(username: string) {
         return await fetch(Http.endpoint(`security?username=${username}`), {
@@ -69,6 +69,47 @@ export class Http {
         })
     }
 
+    /**
+     * @returns Promise<string>
+     * Gets the security question for the user using the data in their jwt.
+     */
+    static async getSecurityQuestionFromToken() {
+        const token = Http.token()
+        return await fetch(Http.endpoint(`security?token=true`), {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+    }
+
+    /**
+     *
+     * @param question
+     * @param answer
+     * @returns Promise<string>
+     * Sets the security question for the user.  Intended for users to reset their question/answer.
+     */
+    static async setSecurityQuestion(question: string, answer: string) {
+        const token = Http.token()
+        return await fetch(Http.endpoint(`security`), {
+            method: 'POST',
+            body: JSON.stringify({ question, answer }),
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
+            },
+        })
+    }
+
+    /**
+     * @param username
+     * @param answer
+     * @param password
+     * @returns Promise<string>
+     * Resets the users password with the help of their security question.
+     */
     static async resetPassword(
         username: string,
         answer: string,

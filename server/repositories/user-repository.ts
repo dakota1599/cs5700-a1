@@ -72,11 +72,11 @@ export class UserRepo {
                 message: 'User could not be found in system.',
             })
 
+        const hashAnswer = await hash(answer)
         user.securityQuestion = {
             question,
-            answer,
+            answer: hashAnswer,
         }
-
         UserRepo.writeUser(user)
 
         return new ActionResult<string>('Security question and answer saved!')
@@ -191,9 +191,14 @@ export class UserRepo {
             } as ServerError)
         }
 
+        user.failedLogins = 0
+        UserRepo.writeUser(user)
+
         const token = jwt.sign(
             {
+                // Experation time set to 1 hour.
                 exp: Math.floor(Date.now() / 1000) + 60 * 60,
+                // Data stored for use later.
                 data: { user: user.username, name: user.name },
             },
             PRIVATE_KEY
@@ -235,6 +240,10 @@ export class UserRepo {
         fs.writeFileSync(path, JSON.stringify(user))
     }
 
+    /**
+     * @returns User[]
+     * Gets all the users within the system and returns them.
+     */
     static getAllUsers() {
         const users = [] as any[]
 

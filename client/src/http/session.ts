@@ -5,7 +5,7 @@ import { Http } from './http'
  * For saving the session token.
  */
 export function saveSession(token: string) {
-    sessionStorage.setItem('token', token)
+    localStorage.setItem('token', token)
 }
 
 /**
@@ -13,14 +13,14 @@ export function saveSession(token: string) {
  * For getting the session token.
  */
 export function getSession() {
-    return sessionStorage.getItem('token')
+    return localStorage.getItem('token')
 }
 
 /**
  * Clears the session token.
  */
 export function clearSession() {
-    sessionStorage.removeItem('token')
+    localStorage.removeItem('token')
 }
 
 /**
@@ -29,7 +29,10 @@ export function clearSession() {
  */
 export async function isActiveSession() {
     const token = getSession()
-    if (token == null) return false
+    if (token == null) {
+        clearSession()
+        return false
+    }
 
     const res = await Http.authorize(token)
 

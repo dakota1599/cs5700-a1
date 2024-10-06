@@ -32,6 +32,9 @@ export type SignProp = {
     onEnter: (info: SignInDTO | SignUpDTO) => void
 }
 
+/**
+ * The Data Transfer Object for resetting the user's password.
+ */
 export type ResetPasswordDTO = {
     answer: string
     password: string
