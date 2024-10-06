@@ -12,7 +12,9 @@ createDirectory()
 
 const app = express()
 
-// Adding middleware
+/**
+ * Adding middleware.
+ */
 app.use(cors())
 app.use(express.json())
 
@@ -226,7 +228,9 @@ app.get('/health', (req, res) => {
     return res.status(200).send('API is active.')
 })
 
-// Set the port and listen for incoming requests
+/**
+ * Set the port and listen for incoming requests.
+ */
 app.listen(3000, () => {
     console.log('Listening on port 3000')
 })

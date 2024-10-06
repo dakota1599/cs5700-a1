@@ -55,6 +55,12 @@ export function isValidPassword(pass: string) {
     return regex.test(pass)
 }
 
+/**
+ * @param auth
+ * @returns {user: string, name: string}
+ * Takes in an authorization header and parses it to get the token.
+ * Returns null if no token is there or the token does not pass validation.
+ */
 export function parseToken(auth: string) {
     if (auth == '' || auth == void 0) return null
 

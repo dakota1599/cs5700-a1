@@ -1,5 +1,5 @@
 /**
- * User representation
+ * User Representation (Entity to model what is stored in the Database)
  */
 export type User = {
     name: string

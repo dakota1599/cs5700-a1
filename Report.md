@@ -4,6 +4,8 @@
 
 ### Written by Dakota Shapiro
 
+Code: [https://github.com/dakota1599/cs5700-a1](https://github.com/dakota1599/cs5700-a1)
+
 ## 1. Introduction
 
 This project was achieved using NodeJS and is split into two sections: the server side and the client side.

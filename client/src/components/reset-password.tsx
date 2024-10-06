@@ -24,6 +24,9 @@ export const ResetPassword = ({ toggleNewUser }: Omit<SignProp, 'onEnter'>) => {
         },
     })
 
+    /**
+     * Getting the security question.
+     */
     const onEnter = async () => {
         if (username.length < 3)
             return alert('Username must be at least 3 characters long.')
@@ -37,6 +40,9 @@ export const ResetPassword = ({ toggleNewUser }: Omit<SignProp, 'onEnter'>) => {
         alert((await res.json()).message)
     }
 
+    /**
+     * Submitting the users new password and answer to security question.
+     */
     const onSubmit = async (info: ResetPasswordDTO) => {
         const res = await Http.resetPassword(
             username,

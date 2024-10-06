@@ -3,6 +3,9 @@ import { isActiveSession } from './http/session'
 import { HomeScreen } from './screens/home-screen'
 import { LoginScreen } from './screens/login-screen'
 
+/**
+ * Staging ground for checking authentication and swapping in the correct screens.
+ */
 function App() {
     const [isActive, setIsActive] = useState(false)
     useEffect(() => {

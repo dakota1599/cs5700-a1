@@ -98,6 +98,14 @@ export class UserRepo {
         return new ActionResult<string>(user.securityQuestion?.question)
     }
 
+    /**
+     *
+     * @param username
+     * @param answer
+     * @param password
+     * @returns ActionResult<string>
+     * For resetting the user's password based on their answer to their security question.
+     */
     static async resetPassword(
         username: string,
         answer: string,
