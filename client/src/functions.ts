@@ -1,7 +1,12 @@
+/**
+ * @param errors
+ * @returns string
+ * Parses the error object created by the react-form-hook library.
+ */
 export function parseErrors(errors: any) {
     let res = ''
     for (var key in errors) {
-        if (key == 'email') res += 'Please provide a valid email address.'
+        if (key == 'username') res += 'Please provide a valid email address.'
         if (key == 'password' || key == 'password2')
             res +=
                 'Please provide a password that is at least 8 characters long, contain special characters, at least one upper and lowercase letter, and a number.'

@@ -2,14 +2,34 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { SignInDTO, SignUpDTO } from '../types'
 import { parseErrors } from '../functions'
+import { Http } from '../http/http'
+import { saveSession } from '../http/session'
 
+/**
+ * @returns ReactNode
+ * Login screen component
+ */
 export const LoginScreen = () => {
     const [isNew, setIsNew] = useState(false)
-    const onSignIn = (info: SignInDTO) => {
-        console.log(info)
+    const onSignIn = async (info: SignInDTO) => {
+        const response = await Http.login(info)
+
+        if (response.status == 200) {
+            saveSession((await response.json()).token)
+            location.reload()
+            return
+        }
+
+        alert((await response.json()).message)
     }
-    const onSignUp = (info: SignUpDTO) => {
-        console.log(info)
+    const onSignUp = async (info: SignUpDTO) => {
+        const response = await Http.register(info)
+
+        if (response.status == 201) {
+            setIsNew(false)
+        }
+
+        alert((await response.json()).message)
     }
     return (
         <div className="w-1/2 h-full flex flex-col justify-center">
@@ -28,17 +48,29 @@ export const LoginScreen = () => {
     )
 }
 
+/**
+ * The props used for both the Sign In and the Sign Up components.
+ */
 type SignProp = {
     toggleNewUser: () => void
     onEnter: (info: SignInDTO | SignUpDTO) => void
 }
 
+/**
+ * @returns ReactNode
+ * Sign in component
+ */
 const SignIn = ({ toggleNewUser, onEnter }: SignProp) => {
     const {
         handleSubmit,
         register,
         formState: { errors },
-    } = useForm<SignInDTO>()
+    } = useForm<SignInDTO>({
+        defaultValues: {
+            username: '',
+            password: '',
+        },
+    })
 
     const onSubmit = (info: SignInDTO) => {
         onEnter(info)
@@ -54,11 +86,10 @@ const SignIn = ({ toggleNewUser, onEnter }: SignProp) => {
                 <input
                     className="text-box"
                     type="text"
-                    placeholder="Email"
-                    {...register('email', {
+                    placeholder="Username"
+                    {...register('username', {
                         required: true,
-                        pattern:
-                            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                        minLength: 3,
                     })}
                 />
                 <input
@@ -89,12 +120,25 @@ const SignIn = ({ toggleNewUser, onEnter }: SignProp) => {
     )
 }
 
+/**
+ * @returns ReactNode
+ * Sign up component
+ */
 const SignUp = ({ toggleNewUser, onEnter }: SignProp) => {
     const {
         handleSubmit,
         register,
         formState: { errors },
-    } = useForm<SignUpDTO>()
+    } = useForm<SignUpDTO>({
+        defaultValues: {
+            name: '',
+            password: '',
+            password2: '',
+            username: '',
+            securityQuestion: '',
+            securityAnswer: '',
+        },
+    })
     const onSubmit = (info: SignUpDTO) => {
         if (info.password != info.password2)
             return alert('Passwords do not match.')
@@ -119,11 +163,10 @@ const SignUp = ({ toggleNewUser, onEnter }: SignProp) => {
                 <input
                     className="text-box"
                     type="text"
-                    placeholder="Email"
-                    {...register('email', {
+                    placeholder="Username"
+                    {...register('username', {
                         required: true,
-                        pattern:
-                            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                        minLength: 3,
                     })}
                 />
                 <input

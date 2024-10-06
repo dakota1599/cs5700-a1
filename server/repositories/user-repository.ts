@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 import { compare, hash } from '../util/hashing.js'
 import { constructPath } from '../util/functions.js'
 import { DB, PRIVATE_KEY, USERS } from '../env.js'
-import { User } from '../models/user.js'
+import { SecurityQuestion, User } from '../models/user.js'
 import { ActionResult, ServerError } from '../models/action-result.js'
 
 const userPath = constructPath(DB, USERS)
@@ -20,7 +20,9 @@ export class UserRepo {
     static async register(
         name: string,
         username: string,
-        pass: string
+        pass: string,
+        securityQuestion: string,
+        securityAnswer: string
     ): Promise<ActionResult<User>> {
         if (UserRepo.findUser(username))
             return new ActionResult<User>(void 0, {
@@ -28,8 +30,15 @@ export class UserRepo {
                 message: 'This username is already taken.  Please try another.',
             } as ServerError)
         const hashedPass = await hash(pass)
+        const hashedSecurityAnswer = await hash(securityAnswer)
 
-        const user = UserRepo.generateUser(name, username, hashedPass)
+        const user = UserRepo.generateUser(
+            name,
+            username,
+            hashedPass,
+            securityQuestion,
+            hashedSecurityAnswer
+        )
 
         UserRepo.writeUser(user)
 
@@ -81,12 +90,23 @@ export class UserRepo {
      * @returns User
      * A method for easy creation of the user object.
      */
-    static generateUser(name: string, username: string, hash: string) {
+    static generateUser(
+        name: string,
+        username: string,
+        hash: string,
+        securityQuestion: string,
+        securityAnswer: string
+    ) {
+        const sec = {
+            question: securityQuestion,
+            answer: securityAnswer,
+        } as SecurityQuestion
         return {
             name,
             username,
             hash,
             permissions: [],
+            securityQuestion: sec,
             failedLogins: 0,
         } as User
     }
@@ -171,5 +191,20 @@ export class UserRepo {
     static writeUser(user: User) {
         const path = UserRepo.getUserFileName(user.username)
         fs.writeFileSync(path, JSON.stringify(user))
+    }
+
+    static getAllUsers() {
+        const users = [] as any[]
+
+        fs.readdirSync(userPath).forEach((u) => {
+            const user = this.findUser(u.split('.')[0])
+            if (user)
+                users.push({
+                    name: user.name,
+                    username: user.username,
+                })
+        })
+
+        return users
     }
 }

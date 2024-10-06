@@ -18,6 +18,14 @@
     .link {
         @apply text-cyan-600 hover:text-cyan-950 hover:cursor-pointer active:text-cyan-950 visited:text-cyan-600;
     }
+
+    h1 {
+        @apply text-5xl;
+    }
+
+    h3 {
+        @apply text-3xl;
+    }
 }
 
 html,

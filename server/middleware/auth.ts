@@ -20,8 +20,8 @@ export const checkPerm = (...perms: string[]) => {
 
         try {
             var decoded = jwt.verify(token[1], PRIVATE_KEY) as JwtPayload
-            console.log(decoded)
-            if (UserRepo.findUser(decoded.data.user)) next()
+            const user = UserRepo.findUser(decoded.data.user)
+            if (user) next()
             else return res.status(401).send('Access Denied.')
         } catch (err) {
             return res
